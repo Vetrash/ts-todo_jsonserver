@@ -1,0 +1,121 @@
+@import '../theme.scss';
+@import '../scrollStyle.scss';
+@import 'FileMenu.scss';
+@import 'ToDoItem.scss';
+@import '../resize.scss';
+@import 'searchToDo.scss';
+@import 'ToDoRedactor.scss';
+@import '../authorization.scss';
+@import '../header.scss';
+
+
+body {
+  background: $collorThemeMain_1;
+}
+
+.todolist-conteiner {
+  display: flex;  
+  position: relative;
+  @media (max-width: 600px ){
+    //flex-direction: column;
+  }
+}
+
+.todolist-block {
+  background: $collorThemeMain_2; 
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  height: 100vh;  
+  @media (max-width: 650px ){
+    min-height: 100vh;
+    width: 100%;
+  }
+}
+
+.title {
+  background: $collorThemeMain_3;
+  color: $collorTextLight;
+  border-radius: 0px 0px 25px 25px;
+  font-family: 'Roboto', sans-serif;
+  font-size: $baseFontSize;
+  text-align: center;
+  width: 100%;  
+}
+
+.elem_activ {
+  display: flex;
+}
+
+.elem_show {
+  display: block;
+}
+
+.hide {
+  display: none;
+}
+
+.btn {
+  background: $collorThemeMain_3;
+  
+  border-radius: 25px;
+  margin-top: 10px;
+  font-family: 'Roboto', sans-serif;
+  font-size: $baseFontSize;
+  color: $collorTextLight;
+  border: none;
+  cursor: pointer;
+  line-height: 1;
+  width: 100%;
+  padding: 5px;
+}
+
+.workSelector {
+  background: rgba(163, 0, 0, 0);
+  color:  $collorTextDark;
+  text-align: center;
+  height: 30px;
+  border: none;
+  font-family: 'Roboto', sans-serif;
+  font-size: $baseFontSize;
+  appearance: none;
+  background-image: url('../../img/arrow_drop_down.svg');
+  background-repeat: no-repeat;
+  background-position-x: calc(100% - 10px);
+  background-position-y: calc(50%);
+  cursor: pointer;
+  width: 100%;
+}
+.title__button {
+  padding: 5px 10px;
+  color:  $collorTextDark;
+  text-align: center;
+  font-family: 'Roboto', sans-serif;
+  border-radius: 50px;
+  cursor: pointer;
+  width: 45%;
+  right: 0;
+  top: 0;
+  font-size: $litleFontSize;
+  border: 0;
+  background: $collorThemeMain_2;
+}
+
+.title__buttonConteiner {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding-top: 5px;
+}
+
+.leftBtn {
+  border-radius: 0px 50px 50px 0px;
+}
+
+.rightBtn {
+  display: none;
+  @media (max-width: 650px ){
+    display: block;
+    border-radius: 50px 0px 0px 50px;
+  }
+}

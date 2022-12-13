@@ -1,0 +1,84 @@
+{
+  "data": [
+    {
+      "username": "admin@test.ru",
+      "id": "itemToDo_13",
+      "topic": "Ого первая задача",
+      "description": "Оставлю небольшое обучение.\nПозже сможешь удалить все задачи и создать свои.\nТут можно оставить информацию о задаче, указать ее статус и дедлайн.",
+      "status": "waiting",
+      "files": [],
+      "deadline": "2023-01-20"
+    },
+    {
+      "username": "123456@test.ru",
+      "id": "itemToDo_13",
+      "topic": "Ого первая задача",
+      "description": "Тут можно оставить информацию о задаче, а ниже сопроводить её не более 10 файлами, указать ее статус задачи и дедлайн.",
+      "status": "waiting",
+      "files": [],
+      "deadline": "2023-01-20"
+    },
+    {
+      "username": "123456@test.ru",
+      "id": "itemToDo_14",
+      "topic": "в процессе",
+      "description": "Тут можно оставить информацию о задаче, а ниже сопроводить её не более 10 файлами, указать ее статус задачи и дедлайн.",
+      "status": "inProcess",
+      "files": [],
+      "deadline": "2023-01-20"
+    },
+    {
+      "username": "123456@test.ru",
+      "id": "itemToDo_15",
+      "topic": "выполнена",
+      "description": "Тут можно оставить информацию о задаче, а ниже сопроводить её не более 10 файлами, указать ее статус задачи и дедлайн.",
+      "status": "done",
+      "files": [],
+      "deadline": "2023-01-20"
+    },
+    {
+      "username": "admin@test.ru",
+      "topic": "Уже выполняется",
+      "description": "Задачу нельзя сохранить без названия и дедлайна. Название задачи не более 20 символов. Описание скролится и не имеет ограничений.",
+      "status": "inProcess",
+      "files": [],
+      "deadline": "2023-01-20",
+      "id": "QGPvubU"
+    },
+    {
+      "username": "admin@test.ru",
+      "topic": "Выполненная",
+      "description": "Редактируемую задачу можно сохранить как новую задачу и просто изменить старую. Нельзя создать новую задачу с уже занятым именем.",
+      "status": "done",
+      "files": [],
+      "deadline": "2023-01-20",
+      "id": "dlRD-KE"
+    },
+    {
+      "username": "admin@test.ru",
+      "topic": "Просроченная",
+      "description": "Мы проверяем соответствие статуса и даты. Задача не может быть просрочена если дедлайн не наступил. А если дедлайн пройден задача может быть либо просрочена либо выполнена.",
+      "status": "undone",
+      "files": [],
+      "deadline": "2012-01-20",
+      "id": "qf6ZwKY"
+    }
+  ],
+  "users": [
+    {
+      "email": "admin@test.ru",
+      "password": "$2a$10$jlILAdyelqX3UJ3xP1pyXOL4IxGHteIlbBFILbCDqwRhuU5q8wBs6",
+      "id": 1
+    },
+    {
+      "email": "123456@test.ru",
+      "password": "$2a$10$SXiD1Vi8yn/ah8bmGI98duWXnlgn7LdC.C5emFm7X2wdmI1qFDoPe",
+      "id": 2
+    },
+    {
+      "email": "test@test.ru",
+      "password": "$2a$10$503/ZGRQO/NDmoVG2.DsAeNFMYUHx5/FJNIU7vUkBp1hfd.jsYcR6",
+      "id": 3
+    }
+  ]
+}

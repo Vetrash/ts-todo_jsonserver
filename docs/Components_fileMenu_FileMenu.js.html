@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Components/fileMenu/FileMenu.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Components/fileMenu/FileMenu.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useState } from 'react';
+import axios from 'axios';
+import cn from 'classnames';
+import _ from 'lodash';
+import { useDispatch, useSelector } from 'react-redux';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { switchShowedFileMenu, todoState, loadFiles } from '../../store/todoSlice.js';
+import ListUploadFiles from './ListUploadFiles.js';
+import { toastOverfloy, toastLoadedEarlier, toastUpload } from '../tools/toasts.js';
+/**
+ *файловое меню для загрузки и менеджмента файлов
+ */
+const FileMenu = () => {
+  const storage = getStorage();
+  const dispatch = useDispatch();
+  const { isShovedFileMenu, uploadFile } = useSelector(todoState);
+  const [isDragOnLoadZone, setIsDragOnLoadZone] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  /**
+   * Сохраняет данные в redux и в внешней БД
+   * @param {string} name имя файла для сохранения в БД и создание ссылки
+   */
+  const safeFile = (name) => getDownloadURL(ref(storage, name))
+    .then((url) => axios({ url, method: 'GET', responseType: 'blob' })
+      .then((response) => {
+        const urlItem = URL.createObjectURL(response.data);
+        dispatch(loadFiles({ name, url: urlItem }));
+      }))
+    .catch((error) => { console.log(error); });
+  /**
+   * Отсеивание дублирующих названий и превышения длины загруженных данных и вызов safeFile
+   * @param {[File]} fileList масив данных типа File
+   */
+  const upload = async (fileList) => {
+    if (uploadFile.length === 10) {
+      toastOverfloy();
+      return;
+    }
+    const emptyPosition = 10 - uploadFile.length &lt; 0 ? 0 : 10 - uploadFile.length;
+    const redactFileList = [];
+    for (let i = 0; i &lt; fileList.length; i += 1) {
+      const isNameLoad = _.find(uploadFile, { name: fileList[i].name }) !== undefined;
+      if (redactFileList.length === emptyPosition) break;
+      if (!isNameLoad) {
+        redactFileList.push(fileList[i]);
+      } else {
+        toastLoadedEarlier(fileList[i].name);
+      }
+    }
+    Promise.all(redactFileList.map((elem) => {
+      const storageRef = ref(storage, elem.name);
+      return uploadBytes(storageRef, elem).then(() => {
+        safeFile(elem.name);
+      });
+    }))
+      .then(() => {
+        if (fileList.length > 10) {
+          toastOverfloy();
+        }
+        toastUpload(redactFileList.length);
+        setIsLoading(false);
+      });
+  };
+  /**
+   * изменяем в редакс флаг видимости меню (закрываем окно файлового меню)
+   */
+  const closer = () => { dispatch(switchShowedFileMenu(false)); };
+  /**
+   * изменяем в редакс флаг для изменения элементов во время перетаскивания файлов
+   * @param {*} e элемент dom
+   */
+  const drag = (e) => {
+    e.preventDefault();
+    setIsDragOnLoadZone(true);
+  };
+  /**
+   * помечаем в state что началась загрузка и начинаем загрузку выбранных файлов
+   * @param {*} e элемент dom
+   */
+  const hendlerUpload = (e) => {
+    const fileList = [...e.target.files];
+    setIsLoading(true);
+    upload(fileList);
+  };
+  /**
+   * Проверка что файлы опущены над объектов с нужным классом и
+   * помечаем в state что началась загрузка и начинаем загрузку перенесенных файлов
+   * @param {*} e элемент dom
+   */
+  const drop = (e) => {
+    e.preventDefault();
+    const parent = e.target.closest('.fileMenu__loader');
+    if (parent !== null) {
+      const fileList = [...e.dataTransfer.files];
+      setIsLoading(true);
+      upload(fileList);
+    }
+    setIsDragOnLoadZone(false);
+  };
+  /**
+   * выдает строки теста для режима переноса текста и статики
+   * @returns возвращает JSX элемент
+   */
+  const textLoadZone = () => {
+    if (isDragOnLoadZone) {
+      return (
+        &lt;p>Отпустите файлы для загрузки&lt;/p>
+      );
+    }
+    return (
+      &lt;>
+        &lt;label className="loader__text" htmlFor="file-input">
+          Выбрать файл
+          &lt;input className="hide uploadfile" id="file-input" type="file" name="file" multiple onChange={hendlerUpload} />
+        &lt;/label>
+        &lt;span> или перетащите его сюда&lt;/span>
+      &lt;/>
+    );
+  };
+  /**
+   * выдает изображение в состоянии загрузки и статики
+   * @returns возвращает JSX элемент
+   */
+  const iconLoadZone = () => {
+    if (isLoading) {
+      return (
+        &lt;img className="fileMenu__loader__img fileMenu__loader__twist" src="./img/loading.png" alt="" />
+      );
+    }
+    return (&lt;img className="fileMenu__loader__img" src="./img/download.png" alt="" />);
+  };
+
+  return (
+    &lt;div
+      className={cn('conteiner__FM', { elem_activ: isShovedFileMenu })}
+      onDragOver={drag}
+      onDrop={drop}
+    >
+      &lt;div className="fileMenu__back" />
+      &lt;div className="fileMenu">
+        &lt;button className="btn__cross" type="button" onClick={closer} aria-label="close menu" />
+        &lt;div className="fileMenu__loader ">
+          &lt;div className={cn('loader', 'loader__drag_line', { loader__drag_lineShow: isDragOnLoadZone })}>
+            {iconLoadZone()}
+            &lt;div className="fileMenu__loader__text">
+              {textLoadZone()}
+            &lt;/div>
+          &lt;/div>
+        &lt;/div>
+        &lt;div className="fileMenu__filelist">
+          &lt;ListUploadFiles />
+        &lt;/div>
+      &lt;/div>
+    &lt;/div>
+  );
+};
+export default FileMenu;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#FileMenu">FileMenu</a></li><li><a href="global.html#ListTodoItems">ListTodoItems</a></li><li><a href="global.html#ListUploadFiles">ListUploadFiles</a></li><li><a href="global.html#SearchToDoItem">SearchToDoItem</a></li><li><a href="global.html#ToDoItem">ToDoItem</a></li><li><a href="global.html#ToDoRedactor">ToDoRedactor</a></li><li><a href="global.html#TodoMain">TodoMain</a></li><li><a href="global.html#nameSchema">nameSchema</a></li><li><a href="global.html#resize">resize</a></li><li><a href="global.html#toastAddToDo">toastAddToDo</a></li><li><a href="global.html#toastDeleteFile">toastDeleteFile</a></li><li><a href="global.html#toastDeleteToDo">toastDeleteToDo</a></li><li><a href="global.html#toastFound">toastFound</a></li><li><a href="global.html#toastLoadedEarlier">toastLoadedEarlier</a></li><li><a href="global.html#toastNotDelete">toastNotDelete</a></li><li><a href="global.html#toastNotFound">toastNotFound</a></li><li><a href="global.html#toastNotRedacted">toastNotRedacted</a></li><li><a href="global.html#toastOverdue">toastOverdue</a></li><li><a href="global.html#toastOverfloy">toastOverfloy</a></li><li><a href="global.html#toastRedacted">toastRedacted</a></li><li><a href="global.html#toastUpload">toastUpload</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Mon Nov 21 2022 17:33:04 GMT+0300 (Москва, стандартное время)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

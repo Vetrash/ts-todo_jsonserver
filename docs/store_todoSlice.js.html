@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: store/todoSlice.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: store/todoSlice.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* eslint-disable no-param-reassign */
+import { createSlice } from '@reduxjs/toolkit';
+import _ from 'lodash';
+
+export const todoState = (state) => state.todo;
+
+const todoSlice = createSlice({
+  name: 'todo',
+  initialState: {
+    todoItems: { },
+    redactedItemId: null,
+    searchItemId: null,
+    isShovedFileMenu: false,
+    uploadFile: [],
+    todoTopics: [],
+  },
+  reducers: {
+    /**
+     * добавить в стейт обьект с переданными параметрами
+     * @param {{ topic: string, description: string, status : string, deadline: date }} action
+     * данные для сохранения в объект
+     */
+    addItem(state, action) {
+      const { topic, description, status, deadline } = action.payload;
+      const id = _.uniqueId('itemToDo_');
+      const files = _.cloneDeep(state.uploadFile);
+      state.todoItems[id] = { id, topic, description, status, files, deadline };
+      state.uploadFile = [];
+      state.redactedItemId = null;
+      state.todoTopics.push(topic);
+    },
+    /**
+     * удалить из стейта задачу по Id
+     * @param {{id:string}} action id элемента для удаления
+     */
+    deleteItems(state, action) {
+      const id = action.payload;
+      const lastTopic = state.todoItems[id].topic;
+      const cloneTodoTopics = _.cloneDeep(state.todoTopics);
+      state.todoTopics = cloneTodoTopics.filter((elem) => elem !== lastTopic);
+      delete state.todoItems[id];
+      state.uploadFile = [];
+      state.redactedItemId = null;
+    },
+    /**
+     * изменение данных в задаче по Id
+     * @param {{id: string, topic: string, description: string,
+     * status : string, deadline: date }} action
+     * данные для сохранения в объект
+     */
+    redactItem(state, action) {
+      const { id, topic, description, status, deadline } = action.payload;
+      const lastTopic = state.todoItems[id].topic;
+      const files = _.cloneDeep(state.uploadFile);
+      state.todoItems[id] = { topic, description, files, status, deadline };
+      state.uploadFile = [];
+      state.redactedItemId = null;
+      const cloneTodoTopics = _.cloneDeep(state.todoTopics);
+      state.todoTopics = cloneTodoTopics.filter((elem) => elem !== lastTopic);
+      state.todoTopics.push(topic);
+    },
+    /**
+     * Устанавливаем в стейт id редактируемой задачи
+     * @param {string} action id редактируемой задачи для установки
+     */
+    setRedactItemId(state, action) {
+      state.redactedItemId = action.payload;
+      state.uploadFile = state.todoItems[action.payload].files;
+    },
+    /**
+     * true - включает файловое меню / false - выключает
+     * @param {boolean} action значение для включения/выкдючение файлового меню
+     */
+    switchShowedFileMenu(state, action) {
+      state.isShovedFileMenu = action.payload;
+    },
+    /**
+     * сохраняем данные о файле в стейт
+     * @param {{ name: string, url: URL }} action имя и ссылка на скачиваемый файл
+     */
+    loadFiles(state, action) {
+      state.uploadFile.push(action.payload);
+    },
+    /**
+     * Перезаписывает масив имен и ссылок скачиваемых файлов
+     * @param {Array} action масив имен и ссылок объектов
+     */
+    updateListLoadFile(state, action) {
+      state.uploadFile = action.payload;
+    },
+    /**
+     * устанавливаем id объекта для выделения
+     * @param {string} action id задачи для выделения
+     */
+    selectedItemById(state, action) {
+      state.searchItemId = action.payload;
+    },
+  },
+});
+
+export const {
+  addItem, deleteItems, redactItem, setRedactItemId,
+  switchShowedFileMenu, loadFiles, selectedItemById,
+  updateListLoadFile,
+} = todoSlice.actions;
+export default todoSlice.reducer;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#FileMenu">FileMenu</a></li><li><a href="global.html#ListTodoItems">ListTodoItems</a></li><li><a href="global.html#ListUploadFiles">ListUploadFiles</a></li><li><a href="global.html#SearchToDoItem">SearchToDoItem</a></li><li><a href="global.html#ToDoItem">ToDoItem</a></li><li><a href="global.html#ToDoRedactor">ToDoRedactor</a></li><li><a href="global.html#TodoMain">TodoMain</a></li><li><a href="global.html#nameSchema">nameSchema</a></li><li><a href="global.html#resize">resize</a></li><li><a href="global.html#toastAddToDo">toastAddToDo</a></li><li><a href="global.html#toastDeleteFile">toastDeleteFile</a></li><li><a href="global.html#toastDeleteToDo">toastDeleteToDo</a></li><li><a href="global.html#toastFound">toastFound</a></li><li><a href="global.html#toastLoadedEarlier">toastLoadedEarlier</a></li><li><a href="global.html#toastNotDelete">toastNotDelete</a></li><li><a href="global.html#toastNotFound">toastNotFound</a></li><li><a href="global.html#toastNotRedacted">toastNotRedacted</a></li><li><a href="global.html#toastOverdue">toastOverdue</a></li><li><a href="global.html#toastOverfloy">toastOverfloy</a></li><li><a href="global.html#toastRedacted">toastRedacted</a></li><li><a href="global.html#toastUpload">toastUpload</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Mon Nov 21 2022 17:33:04 GMT+0300 (Москва, стандартное время)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

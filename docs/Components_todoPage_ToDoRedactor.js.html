@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Components/todoPage/ToDoRedactor.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Components/todoPage/ToDoRedactor.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useFormik } from 'formik';
+import _ from 'lodash';
+import cn from 'classnames';
+import dayjs from 'dayjs';
+import { todoState, addItem, redactItem, switchShowedFileMenu } from '../../store/todoSlice.js';
+import { nameSchema } from '../tools/validate.js';
+import { toastAddToDo, toastRedacted, toastNotRedacted, toastOverdue } from '../tools/toasts.js';
+/**
+ * Функция отрисовки редактора задач
+ * @returns JSX элемент
+ */
+const ToDoRedactor = () => {
+  const { todoItems, redactedItemId, todoTopics } = useSelector(todoState);
+  const dispatch = useDispatch();
+  const formik = useFormik({
+    initialValues: {
+      topic: '',
+      topicDublicate: '',
+      description: '',
+      deadline: '',
+      status: 'waiting',
+    },
+    validationSchema: nameSchema(todoTopics),
+  });
+  // обнуляем поля после создания/редактирования задачи
+  useEffect(() => {
+    if (redactedItemId !== null) {
+      const { topic, description, status, deadline } = todoItems[redactedItemId];
+      formik.setValues({ topic, description, status, deadline });
+    }
+  }, [redactedItemId]);
+  // дублируем значения имени задачи в дубликат
+  // ( для разделения валидации для редактирования и создание новой задачи)
+  useEffect(() => {
+    formik.setFieldValue('topicDublicate', formik.values.topic);
+  }, [formik.values.topic]);
+  // при рендере обьекта выставляем на инпут фокус
+  useEffect(() => {
+    formik.setFieldValue('topic', '', true);
+  }, []);
+  /**
+   * определяем просроченность задачи на помент сохранения задачи
+   * @param {date} deadline  дата дедлайна
+   * @param {string} status статус переданный пользователем
+   * @returns {string} статус с учетом дедлайна
+   */
+  const getCheckStatys = (deadline, status) => {
+    const nowDate = dayjs();
+    const endDate = dayjs(deadline);
+    const diffDate = endDate.diff(nowDate, 'day');
+    const statusRed = () => {
+      if (diffDate &lt; 0) {
+        if (status !== 'completed') return 'overdue';
+        return status;
+      }
+      if (status === 'overdue') return 'waiting';
+      return status;
+    };
+    return statusRed();
+  };
+  /**
+   * сохранение изменений в редактируемой задачи
+   */
+  const redactToDoItem = () => {
+    if (!_.has(formik.errors, 'topicDublicate')) {
+      const { topic, description, status, deadline } = formik.values;
+      const statusRed = getCheckStatys(deadline, status);
+      dispatch(redactItem({ topic, description, status: statusRed, id: redactedItemId, deadline }));
+      formik.setValues({ topic: '', description: '', status: 'waiting', deadline: '' });
+      toastRedacted();
+      if (statusRed === 'overdue') { toastOverdue(); }
+    } else {
+      toastNotRedacted();
+    }
+  };
+  /**
+   * сохранение новой задачи
+   */
+  const addNewToDo = () => {
+    console.log(formik);
+    if (formik.isValid) {
+      const { topic, description, status, deadline } = formik.values;
+      const statusRed = getCheckStatys(deadline, status);
+      dispatch(addItem({ topic, description, status: statusRed, deadline }));
+      formik.setValues({ topic: '', description: '', status: 'waiting', deadline: '' });
+      toastAddToDo();
+      if (statusRed === 'overdue') { toastOverdue(); }
+    } else {
+      toastNotRedacted();
+    }
+  };
+  /**
+   * переключение флага отрисовки файлового меню
+   */
+  const shovedFileMenu = () => { dispatch(switchShowedFileMenu(true)); };
+
+  const isResizebleWidth = window.innerWidth > 600;
+  const styleWidth = isResizebleWidth ? '50%' : '100%';
+
+  return (
+    &lt;form className="redactorToDO" style={{ width: styleWidth }} onSubmit={(e) => { e.preventDefault(); }}>
+      &lt;div className="redactorConteiner">
+        &lt;p>Название задачи &lt;/p>
+        &lt;input
+          type="text"
+          name="topic"
+          onChange={formik.handleChange}
+          value={formik.values.topic}
+        />
+        &lt;p>Описание задачи&lt;/p>
+        &lt;textarea
+          name="description"
+          onChange={formik.handleChange}
+          value={formik.values.description}
+        />
+        &lt;button type="button" className="btn" onClick={shovedFileMenu}>Работа с файлами&lt;/button>
+        &lt;div className="flexConteiner">
+          &lt;div className="flexConteiner__item">
+            &lt;p>Статус задачи&lt;/p>
+            &lt;select
+              name="status"
+              onChange={formik.handleChange}
+              value={formik.values.status}
+            >
+              &lt;option value="waiting">ожидает&lt;/option>
+              &lt;option value="inProcess">в процессе&lt;/option>
+              &lt;option value="completed">выполнена&lt;/option>
+              &lt;option value="overdue">просрочена&lt;/option>
+            &lt;/select>
+          &lt;/div>
+          &lt;div className="flexConteiner__item">
+            &lt;p>Дедлайн&lt;/p>
+            &lt;input
+              className="input__date"
+              type="date"
+              name="deadline"
+              onChange={formik.handleChange}
+              value={formik.values.deadline}
+            />
+          &lt;/div>
+        &lt;/div>
+        &lt;div className="alertlog">
+          {formik.errors.topic}
+          {formik.errors.deadline}
+        &lt;/div>
+        &lt;div className="flexConteiner">
+          &lt;div className={cn('flexConteiner__item', { hide: redactedItemId === null })}>
+            &lt;button
+              type="button"
+              className={cn('btn')}
+              onClick={redactToDoItem}
+            >
+              Сохранить изменения
+            &lt;/button>
+          &lt;/div>
+          &lt;div className="flexConteiner__item">
+            &lt;button type="button" className="btn" onClick={addNewToDo}>Сохранить новую задачу&lt;/button>
+          &lt;/div>
+        &lt;/div>
+      &lt;/div>
+    &lt;/form>
+  );
+};
+export default ToDoRedactor;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#FileMenu">FileMenu</a></li><li><a href="global.html#ListTodoItems">ListTodoItems</a></li><li><a href="global.html#ListUploadFiles">ListUploadFiles</a></li><li><a href="global.html#SearchToDoItem">SearchToDoItem</a></li><li><a href="global.html#ToDoItem">ToDoItem</a></li><li><a href="global.html#ToDoRedactor">ToDoRedactor</a></li><li><a href="global.html#TodoMain">TodoMain</a></li><li><a href="global.html#nameSchema">nameSchema</a></li><li><a href="global.html#resize">resize</a></li><li><a href="global.html#toastAddToDo">toastAddToDo</a></li><li><a href="global.html#toastDeleteFile">toastDeleteFile</a></li><li><a href="global.html#toastDeleteToDo">toastDeleteToDo</a></li><li><a href="global.html#toastFound">toastFound</a></li><li><a href="global.html#toastLoadedEarlier">toastLoadedEarlier</a></li><li><a href="global.html#toastNotDelete">toastNotDelete</a></li><li><a href="global.html#toastNotFound">toastNotFound</a></li><li><a href="global.html#toastNotRedacted">toastNotRedacted</a></li><li><a href="global.html#toastOverdue">toastOverdue</a></li><li><a href="global.html#toastOverfloy">toastOverfloy</a></li><li><a href="global.html#toastRedacted">toastRedacted</a></li><li><a href="global.html#toastUpload">toastUpload</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Mon Nov 21 2022 17:33:04 GMT+0300 (Москва, стандартное время)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
